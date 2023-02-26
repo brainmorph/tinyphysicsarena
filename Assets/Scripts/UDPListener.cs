@@ -66,12 +66,13 @@ public class UDPListener : MonoBehaviour
         }
         catch(SocketException se)
         {
-            Debug.Log(se); // It's ok to leave this debug log call uncommented because we want to see these messages at runtime, it will be minimal interruption.
+            Debug.Log(se);
         }
         catch(ArgumentException ee)
         {
+            // TODO: revist this.  The most likely reason for entering here is a buffer index overrun.
             Debug.Log(ee);
-            mIncomingUdpBufferIndex = 0; // reset the buffer pointer, this is most likely why we had an argument exception here.
+            mIncomingUdpBufferIndex = 0; // reset the buffer pointer
         }
     }
     

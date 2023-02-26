@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using UnityEngine;
+using Debug = UnityEngine.Debug; // <<<<<< This was needed to differentiate between System.Diagnostics.Debug and Unity's version.
 
 public class UDPListener : MonoBehaviour
 {
@@ -16,12 +18,19 @@ public class UDPListener : MonoBehaviour
         Debug.Log("Does this even work?");
         Debug.Log("Does this even work?");
         Debug.Log("Does this even work?");
-        StartListener();
+        StartUdpListener();
     }
 
-    private void StartListener()
+    // Update is called every frame
+    void Update()
     {
-        Debug.Log("Entered function StartListener()");
+        StoreIncomingUdpPackets();
+        ParseReceivedUdpPackets();
+    }
+
+    private void StartUdpListener()
+    {
+        Debug.Log($"Entered function {new StackFrame(1, false).GetMethod().Name}");
 
         mUdpListener = new UdpClient(mListenPort);
         //mUdpListener.Client.Blocking = false;
@@ -35,49 +44,42 @@ public class UDPListener : MonoBehaviour
 
         Debug.Log("At this point I believe both the UdpClient and the IPEndPoint have been set up.");
         Debug.Log($"We have IPEndPoint.Address = {mGroupEP.Address} and IPEndPoint.Port = {mGroupEP.Port}");
-
-        // try
-        // {
-        //     while (true)
-        //     {
-        //         Debug.Log("Waiting for broadcast");
-        //         byte[] bytes = Encoding.ASCII.GetBytes("lol"); //listener.Receive(ref groupEP);
-
-        //         Debug.Log($"Received broadcast from {groupEP} :");
-        //         Debug.Log($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
-        //     }
-        // }
-        // catch (SocketException e)
-        // {
-        //     Debug.Log(e);
-        // }
-        // finally
-        // {
-        //     listener.Close();
-        // }
     }
 
-    void Update()
+    private void ParseReceivedUdpPackets()
+    {
+        Debug.Log($"IncomingUdpBuffer contains {mIncomingUdpBufferIndex} elements.");
+    }
+
+    // This function should only be used for storing the UDP packets, no parsing should be done here.
+    // This function should run as quickly as possible to ensure the smallest amount of packet loss.
+    private void StoreIncomingUdpPackets()
     {
         Debug.Log("Waiting for broadcast");
         try
         {
             byte[] bytes = mUdpListener.Receive(ref mGroupEP);
-            Debug.Log($"Received broadcast from {mGroupEP} :");
-            Debug.Log($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
+            System.Buffer.BlockCopy(bytes, 0, mIncomingUdpBuffer, mIncomingUdpBufferIndex, bytes.Length);
+            mIncomingUdpBufferIndex += bytes.Length;
+
+            //Debug.Log($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
         }
         catch(SocketException se)
         {
-            Debug.Log(se);
+            Debug.Log(se); // It's ok to leave this debug log call uncommented because we want to see these messages at runtime, it will be minimal interruption.
         }
-        // finally
-        // {
-        //     mUdpListener.Close();
-        // }
+        catch(ArgumentException ee)
+        {
+            Debug.Log(ee);
+            mIncomingUdpBufferIndex = 0; // reset the buffer pointer, this is most likely why we had an argument exception here.
+        }
     }
     
     private const int mListenPort = 11000;
     
     private UdpClient mUdpListener;
     private IPEndPoint mGroupEP;
+
+    private byte[] mIncomingUdpBuffer = new byte[2 * 1024]; // maybe I should force a max length of bytes here?  Not sure yet.
+    private int mIncomingUdpBufferIndex;
 }

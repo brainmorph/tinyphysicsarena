@@ -26,25 +26,26 @@ public class UDPListener : MonoBehaviour
     // Update is called every frame
     void Update()
     {
-        StoreIncomingUdpPackets();
+        SaveIncomingUdpPackets();
         ParseReceivedUdpPackets();
     }
 
     private void StartUdpListener()
     {
-        Debug.Log($"Entered function {new StackFrame(1, false).GetMethod().Name}");
+        //Debug.Log($"Entered function {new StackFrame(1, false).GetMethod().Name}");
 
+        // Configure our udp listener object
         mUdpListener = new UdpClient(mListenPort);
         //mUdpListener.Client.Blocking = false;
         mUdpListener.Client.ReceiveTimeout = 1000;
 
-        Debug.Log($"Just created a new UdpClient({mListenPort})");
+        Debug.Log($"Created a new UdpClient({mListenPort})");
         
         IPAddress designatedIP = IPAddress.Any;
         mGroupEP = new IPEndPoint(designatedIP, mListenPort);
-        Debug.Log($"Just created a new IPEndPoint({designatedIP}, {mListenPort})");
+        Debug.Log($"Created a new IPEndPoint({designatedIP}, {mListenPort})");
 
-        Debug.Log("At this point I believe both the UdpClient and the IPEndPoint have been set up.");
+        Debug.Log("At this point both the UdpClient and the IPEndPoint have been set up.");
         Debug.Log($"We have IPEndPoint.Address = {mGroupEP.Address} and IPEndPoint.Port = {mGroupEP.Port}");
     }
 
@@ -76,24 +77,27 @@ public class UDPListener : MonoBehaviour
             if(mStartOfPacketDetected)
             {
                 Debug.Log("Character received: " + (char)mIncomingUdpBuffer[mIncomingUdpBufferReadIndex]);
+
+                // TODO: these bytes should be saved out in a "received messages" buffer.
+
             }
 
             mIncomingUdpBufferReadIndex++;
         }
     }
 
-    // This function should only be used for storing the UDP packets, no parsing should be done here.
     // This function should run as quickly as possible to ensure the smallest amount of packet loss.
-    private void StoreIncomingUdpPackets()
+    private void SaveIncomingUdpPackets()
     {
-        Debug.Log("Waiting for broadcast");
+        //Debug.Log("Waiting for broadcast");
         try
         {
-            byte[] bytes = mUdpListener.Receive(ref mGroupEP);
-            System.Buffer.BlockCopy(bytes, 0, mIncomingUdpBuffer, mIncomingUdpBufferWriteIndex, bytes.Length);
-            mIncomingUdpBufferWriteIndex += bytes.Length;
+            byte[] receivedBytes = mUdpListener.Receive(ref mGroupEP); // can block or timeout depending on how mUdpListener was configured
 
-            //Debug.Log($" {Encoding.ASCII.GetString(bytes, 0, bytes.Length)}");
+            System.Buffer.BlockCopy(receivedBytes, 0, mIncomingUdpBuffer, mIncomingUdpBufferWriteIndex, receivedBytes.Length);
+            mIncomingUdpBufferWriteIndex += receivedBytes.Length;
+
+            //Debug.Log($" {Encoding.ASCII.GetString(bytes, 0, receivedBytes.Length)}");
         }
         catch(SocketException se)
         {

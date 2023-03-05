@@ -11,6 +11,7 @@ using Debug = UnityEngine.Debug; // <<<<<< This was needed to differentiate betw
 public class UDPListener : MonoBehaviour
 {
     public GameObject myPrefab;
+    public List<List<byte>> ReceivedMessagesList = new List<List<byte>>();
 
     // Start is called once
     void Start()
@@ -28,6 +29,21 @@ public class UDPListener : MonoBehaviour
     {
         SaveIncomingUdpPackets();
         ParseReceivedUdpPackets();
+    }
+
+    public List<byte> NextMessage()
+    {
+        if(ReceivedMessagesList.Count != 0)
+        {
+            List<byte> t = ReceivedMessagesList[0];
+            ReceivedMessagesList.Remove(t);
+
+            return t;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     private void StartUdpListener()
@@ -65,21 +81,27 @@ public class UDPListener : MonoBehaviour
             if(mIncomingUdpBuffer[mIncomingUdpBufferReadIndex] == '`' && !mStartOfPacketDetected)
             {
                 mStartOfPacketDetected = true;
+
+                // Start keeping track of the incoming bytes in a new buffer
+                mIncomingMessageBuffer = new List<byte>();
             }
 
             // Detected end of packet
             if(mIncomingUdpBuffer[mIncomingUdpBufferReadIndex] == '\r' && mStartOfPacketDetected)
             {
                 mStartOfPacketDetected = false; // reset flag and start looking for packet start again
+
+                // Save the entire message
+                ReceivedMessagesList.Add(mIncomingMessageBuffer);
             }
 
             // While in the middle of a packet
             if(mStartOfPacketDetected)
             {
-                Debug.Log("Character received: " + (char)mIncomingUdpBuffer[mIncomingUdpBufferReadIndex]);
+                //Debug.Log("Character received: " + (char)mIncomingUdpBuffer[mIncomingUdpBufferReadIndex]);
 
-                // TODO: these bytes should be saved out in a "received messages" buffer.
-
+                // Save this byte, we're still in the middle of processing a message
+                mIncomingMessageBuffer.Add(mIncomingUdpBuffer[mIncomingUdpBufferReadIndex]);
             }
 
             mIncomingUdpBufferReadIndex++;
@@ -117,8 +139,12 @@ public class UDPListener : MonoBehaviour
     private UdpClient mUdpListener;
     private IPEndPoint mGroupEP;
 
-    private byte[] mIncomingUdpBuffer = new byte[2 * 1024]; // maybe I should force a max length of bytes here?  Not sure yet.
+    // Incoming byte management
+    private byte[] mIncomingUdpBuffer = new byte[2 * 1024]; // TODO: what should this size be?
     private int mIncomingUdpBufferReadIndex;
     private int mIncomingUdpBufferWriteIndex;
     private bool mStartOfPacketDetected = false;
+
+    // Incoming message management
+    private List<byte> mIncomingMessageBuffer;
 }

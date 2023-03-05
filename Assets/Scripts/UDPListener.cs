@@ -11,7 +11,6 @@ using Debug = UnityEngine.Debug; // <<<<<< This was needed to differentiate betw
 public class UDPListener : MonoBehaviour
 {
     public GameObject myPrefab;
-    public List<List<byte>> ReceivedMessagesList = new List<List<byte>>();
 
     // Start is called once
     void Start()
@@ -33,10 +32,10 @@ public class UDPListener : MonoBehaviour
 
     public List<byte> NextMessage()
     {
-        if(ReceivedMessagesList.Count != 0)
+        if(mReceivedMessagesList.Count != 0)
         {
-            List<byte> t = ReceivedMessagesList[0];
-            ReceivedMessagesList.Remove(t);
+            List<byte> t = mReceivedMessagesList[0];
+            mReceivedMessagesList.Remove(t);
 
             return t;
         }
@@ -44,6 +43,11 @@ public class UDPListener : MonoBehaviour
         {
             return null;
         }
+    }
+
+    public int CountMessages()
+    {
+        return mReceivedMessagesList.Count;
     }
 
     private void StartUdpListener()
@@ -92,7 +96,7 @@ public class UDPListener : MonoBehaviour
                 mStartOfPacketDetected = false; // reset flag and start looking for packet start again
 
                 // Save the entire message
-                ReceivedMessagesList.Add(mIncomingMessageBuffer);
+                mReceivedMessagesList.Add(mIncomingMessageBuffer);
             }
 
             // While in the middle of a packet
@@ -130,7 +134,7 @@ public class UDPListener : MonoBehaviour
             // TODO: revist this.  The most likely reason for entering here is a buffer index overrun.
             Debug.Log(ee);
             mIncomingUdpBufferReadIndex = 0;
-            mIncomingUdpBufferWriteIndex = 0; 
+            mIncomingUdpBufferWriteIndex = 0;
         }
     }
     
@@ -146,5 +150,6 @@ public class UDPListener : MonoBehaviour
     private bool mStartOfPacketDetected = false;
 
     // Incoming message management
+    private List<List<byte>> mReceivedMessagesList = new List<List<byte>>();
     private List<byte> mIncomingMessageBuffer;
 }

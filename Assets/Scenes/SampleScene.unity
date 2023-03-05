@@ -412,8 +412,9 @@ GameObject:
   - component: {fileID: 1704303584}
   - component: {fileID: 1704303583}
   - component: {fileID: 1704303587}
+  - component: {fileID: 1704303588}
   m_Layer: 0
-  m_Name: UDPListener
+  m_Name: MessageReceiver
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -507,5 +508,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76000fc66678e7d4fa1f45514f06f3ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  myPrefab: {fileID: 0}
+--- !u!114 &1704303588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1704303582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bdb05068e6ecda4daf5c4ee3c12c385, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
